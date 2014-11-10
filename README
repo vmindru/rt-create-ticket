@@ -1,19 +1,25 @@
-#
-# This script will create a new ticket in RT from command line. You must make sure you have installed
-# rtkit and optpars before proceding. you can do #pip install urllib2_kerberos python-rtkit
-# for rest read help page. you should also specify  url=testurl or url=produrl for production or staging RT.
-#
-# HOWOTO:
-#
-# Make sure you have a kerberos ticket before you run the script
-#
-# INSTALL:
-#
-#1) 
-# place rt-create-ticket under $HOME/bin/ or uder /usr/bin
-# 
-#2) install rtkit adn KERB auth
-#
+NAME: rt-create-ticket
+
+DESCRIPTION:
+
+This script will create a new ticket in RT from command line. You must make sure you have installed
+rtkit and optpars before proceding.  Specify  url=testurl or url=produrl for production or staging RT.
+
+HOWOTO:
+
+Make sure you have a kerberos ticket before you run the script
+rt-create-ticket --help 
+
+
+INSTALL:
+
+1) Fetch the script
+# git clone https://github.com/vmindru/rt-create-ticket
+
+2)  place rt-create-ticket under $HOME/bin/ or uder /usr/bin
+# cp rt-create-ticket $HOME/bin/
+
+3) install rtkit adn KERB auth
 # pip install urllib2_kerberos python-rtkit
-#
+
 
