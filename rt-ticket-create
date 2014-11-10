@@ -35,11 +35,11 @@ def main():
         parser = OptionParser()
         parser.add_option("-q", "--queue", dest = "queue" , default= "eng-ops-prod" , help="specify queue")
         parser.add_option("-S", "--status", dest = "status" , default= "new" , help="specify status new,resolved,open")
-        parser.add_option("-r", "--requestor", dest = "requestor" , default= "none" , help="specify status new,resolved,open")
-        parser.add_option("-o", "--owner", dest = "owner" , default= "none" , help="specify status new,resolved,open")
-        parser.add_option("-s", "--subject", dest = "subject" , default= "none", help="specify status new,resolved,open")
+        parser.add_option("-r", "--requestor", dest = "requestor" , default= "none" , help="specify requestor email address e.g. vmindru@redhat.com")
+        parser.add_option("-o", "--owner", dest = "owner" , default= "none" , help="specify owner email address e.g. vmindru@redhat.com ")
+        parser.add_option("-s", "--subject", dest = "subject" , default= "none", help="specify subject for the new ticket, note Subject must be at least 20 characters")
 #	parser.add_option("-i", "--input", dest = "input" ,default = "none", help="specify input of message body. stdin,file")
-	parser.add_option("-f", "--file", dest = "file" , default = "none" , help="path to file for message body")
+	parser.add_option("-f", "--file", dest = "file" , default = "none" , help="path to file for message body, if this parameter is not specified will read from STDIN ")
 	(options, args) = parser.parse_args()
 	my_options = {
 			"options": {
