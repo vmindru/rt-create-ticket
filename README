@@ -1,0 +1,6 @@
+#
+# This script will create a new ticket in RT from command line. You must make sure you have installed
+# rtkit and optpars before proceding. you can do #pip install urllib2_kerberos python-rtkit
+# for rest read help page. you should also specify  url=testurl or url=produrl for production or staging RT.
+#
+
