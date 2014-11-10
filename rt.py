@@ -37,7 +37,7 @@ def main():
         parser.add_option("-S", "--status", dest = "status" , default= "new" , help="specify status new,resolved,open")
         parser.add_option("-r", "--requestor", dest = "requestor" , default= "none" , help="specify status new,resolved,open")
         parser.add_option("-o", "--owner", dest = "owner" , default= "none" , help="specify status new,resolved,open")
-        parser.add_option("-s", "--subject", dest = "subject" , default= "Ticket created other API", help="specify status new,resolved,open")
+        parser.add_option("-s", "--subject", dest = "subject" , default= "none", help="specify status new,resolved,open")
 	parser.add_option("-i", "--input", dest = "input" ,default = "none", help="specify input of message body. stdin,file")
 	parser.add_option("-f", "--file", dest = "file" , help="path to file for message body")
 	(options, args) = parser.parse_args()
@@ -55,16 +55,18 @@ def main():
 	return my_options
 
 
-def define_content():
+def define_content(data):
+	opts=data[0]["options"]
+	message_body=data[1]
 	content = {
 	    'content': {
 		'id': 'ticket/new',
-	        'Subject' : RT_Subject,
-		'Text' : RT_Text,
-	        'Queue': RT_Queue,
-		'Status': RT_Status,
-		'Requestor': RT_Requestor,
-		'Owner': RT_Owner,
+	        'Subject' : opts["Subject"],
+		'Text' : message_body,
+	        'Queue': opts["Queue"],
+		'Status': opts["Status"],
+		'Requestor': opts["Requestor"],
+		'Owner': opts["Owner"],
 	    }
 	}
 	return content
@@ -114,11 +116,14 @@ def build_request_options(opts):
 	return opts,text
 
 if __name__ == "__main__":
+	# get opts 
 	opts = main()
+	# check options and prepare data for input
 	data = 	build_request_options(opts)
-
-options = data[0]
-print options["options"]["Queue"]
+	# prepare content object for input to RT
+	content = define_content(data)
+	# submit ticket and print status
+	submit_ticket_static(content)
 
 
 
