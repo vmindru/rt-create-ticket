@@ -1,51 +1,68 @@
 #!/bin/env python
-#
-# This script will create a new ticket in RT from command line. You must make sure you have installed
-# rtkit and optpars before proceding. you can do #pip install urllib2_kerberos python-rtkit
-# for rest read help page. you should also specify  url=testurl or url=produrl for production or staging RT.
-#
-
 
 from rtkit.resource import RTResource
 from rtkit.authenticators import KerberosAuthenticator
 from rtkit.errors import RTResourceError
 from optparse import OptionParser
 from rtkit import set_logging
-import sys,logging,os,fileinput
+import sys
+import pprint
+import logging
+import os
+import fileinput
+
 
 logger = logging.getLogger('rtkit')
-produrl = 'https://engineering.redhat.com/rt/REST/1.0/'
-testurl = ''
-url=produrl
-resource = RTResource(url, None, None, KerberosAuthenticator)
 
-# DEFAULT QEUE, STATUS , REQUESTOR AND OWNER
-RT_Queue="eng-ops-prod"
-RT_Status="new"
-RT_Requestor="vmindru@redhat.com"
-RT_Owner=RT_Requestor
+if os.environ.has_key('RT_API_URL'):
+    RT_API_URL=os.environ.get('RT_API_URL')
+else:
+    RT_API_URL='http://localhost/API'
+if os.environ.has_key('RT_QUEUE'):
+    RT_QUEUE=os.environ.get('RT_QUEUE')
+else:
+    RT_QUEUE=''
+if os.environ.has_key('RT_STATUS'):
+    RT_STATUS=os.environ.get('RT_STATUS')
+else:
+    RT_STATUS='new'
+
+if os.environ.has_key('RT_REQUESTOR'):
+    RT_REQUESTOR=os.environ.get('RT_REQUESTOR')
+else:
+    RT_REQUESTOR=os.environ.get('USER')
+
+default_opts={  
+                'RT_REQUESTOR': RT_REQUESTOR,
+                'RT_OWNER': RT_REQUESTOR,
+                'RT_STATUS': RT_STATUS,
+                'RT_QUEUE': RT_QUEUE,
+                'RT_API_URL': RT_API_URL 
+             }
 
 
-
-def submit_ticket_static(content):
+def submit_ticket_static(content,url):
     try:
+        resource = RTResource(url, None, None, KerberosAuthenticator)
         response = resource.post(path='ticket/new', payload=content,)
         logger.info(response.parsed)
-        print response.status
-        print response.body
+        return response
     except RTResourceError as e:
         logger.error(e.response.status_int)
         logger.error(e.response.status)
         logger.error(e.response.parsed)
+        sys.exit(100)
 
-def main():
-        parser = OptionParser()
-        parser.add_option("-q", "--queue", dest = "queue" , default= "eng-ops-prod" , help="specify queue")
-        parser.add_option("-S", "--status", dest = "status" , default= "new" , help="specify status new,resolved,open")
-        parser.add_option("-r", "--requestor", dest = "requestor" , default= "none" , help="specify requestor email address e.g. vmindru@redhat.com")
-        parser.add_option("-o", "--owner", dest = "owner" , default= "none" , help="specify owner email address e.g. vmindru@redhat.com ")
+def main(default_opts):
+        #usage="usage: %prog [options] arg1 arg2"
+        parser = OptionParser(version="%prog 2.0")
+        parser.add_option("-q", "--queue", dest = "queue" , default= default_opts['RT_QUEUE'] , help="specify queue, defaults to none or ENV variable $RT_QUEUE")
+        parser.add_option("-S", "--status", dest = "status" , default= default_opts['RT_STATUS'] , help="specify status new,resolved,open, defaults to new or to ENV variable $RT_STATUS")
+        parser.add_option("-r", "--requestor", dest = "requestor" , default= "none" , help="specify requestor email address e.g. vmindru@redhat.com, defaults to ENV variable $USER")
+        parser.add_option("-o", "--owner", dest = "owner" , default= "none" , help="specify owner email address e.g. vmindru@redhat.com, defaults to ENV variable $USER ")
         parser.add_option("-s", "--subject", dest = "subject" , default= "none", help="specify subject for the new ticket, note Subject must be at least 20 characters")
         parser.add_option("-f", "--file", dest = "file" , default = "none" , help="path to file for message body, if this parameter is not specified will read from STDIN ")
+        parser.add_option("-u", "--url", dest = "url" , default = default_opts['RT_API_URL'] , help="RT API URL e.g. http://mydom/REST/1.0/, defaults to http://localhost or to ENV varialbe $RT_API_URL")
         (options, args) = parser.parse_args()
         my_options = {
             "options": {
@@ -54,8 +71,8 @@ def main():
                     "Requestor": options.requestor,
                     "Owner": options.owner,
                     "Subject": options.subject,
-#                   "Input": options.input,
                     "File": options.file,
+                    "Url": options.url,
                 }   
         }
         return my_options
@@ -93,16 +110,17 @@ def build_request_options(opts):
         sys.exit(22)
     # Make sure we have a Requestor 
     if opts["options"]["Requestor"] == "none":
-        print "Requestor email address not defined using default"
-        opts["options"]["Requestor"] =  RT_Requestor
+    #    print "Requestor email address not defined using default"
+        opts["options"]["Requestor"] =  RT_REQUESTOR
     else:
         True
     # Make sure we have a Owner
     if opts["options"]["Owner"] == "none":
-        print "Owner email address not defined using default"
-        opts["options"]["Owner"] = RT_Requestor     
+    #    print "Owner email address not defined using default"
+        opts["options"]["Owner"] = RT_REQUESTOR     
     else:
         True
+     
     
     # check if -i has been invoked, if no read from stdin if yes check if file exists and store it in 'text'
     if opts["options"]["File"] == "none":
@@ -115,7 +133,7 @@ def build_request_options(opts):
                 print "exiting EOF"
                 break
             else:
-                text=text+ line
+                text=text+line
     else:
         if os.path.isfile(opts["options"]["File"]): 
             text=''
@@ -125,16 +143,37 @@ def build_request_options(opts):
             print "we doubt {} is a file".format(opts["options"]["File"])
     return opts,text
 
+def request_data(options):
+    opts=options[0]
+    result = "Requesting:\n\nOwner: {}\nRequestor: {}\nQueue: {}\nStatus: {}\nSubject: {}\nUrl: {}\n\nBody:\n{}\n".format(
+             opts['options']['Owner'],
+             opts['options']['Requestor'],
+             opts['options']['Queue'],
+             opts['options']['Status'],
+             opts['options']['Subject'],
+             opts['options']['Url'],
+             options[1],
+             )
+    return result
+
 if __name__ == "__main__":
     # get opts 
-    opts = main()
+    opts = main(default_opts)
     # check options and prepare data for input
     data =  build_request_options(opts)
     # prepare content object for input to RT
     content = define_content(data)
     # submit ticket and print status
-    submit_ticket_static(content)
+    result =  submit_ticket_static(content,opts['options']['Url'])
 
+    if result.status_int == 200:
+        os.system('clear')
+        print request_data(data)
+        print result.body
+    else:
+        os.system('clear')
+        print "ERROR:\n{}\n{}\n{}".format(request_data(data),result.headers,result.body)
+      
 
 
 
