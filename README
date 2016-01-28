@@ -3,12 +3,25 @@ NAME: rt-create-ticket
 DESCRIPTION:
 
 This script will create a new ticket in RT from command line. You must make sure you have installed
-rtkit and optpars before proceding.  Specify  url=testurl or url=produrl for production or staging RT.
+rtkit and optpars before proceding.  
 
-HOWOTO:
+
+USAGE:
 
 Make sure you have a kerberos ticket before you run the script
 rt-create-ticket --help 
+
+e.g. 
+
+create new ticket with owner and requestor vmindru@redhat.com  @ http://localhost/API
+    rt-create-ticket -s "add new feature to rt-ticket-create" -S open -r vmindru@redhat.com -o vmindru@redhat.com -u http://localhost/API
+
+
+you can set up requestor,owner,RT API URL and defautl ticket status creation as ENV variables 
+RT_QUEUE - specify default queue where to create tickets
+RT_API_URL - default URL to communicate to RT
+RT_STATUS - default status when creating a new ticket e.g. open or new
+
 
 
 INSTALL:
@@ -16,7 +29,7 @@ INSTALL:
 1) Fetch the script
 # git clone https://github.com/vmindru/rt-create-ticket
 
-2)  place rt-create-ticket under $HOME/bin/ or uder /usr/bin
+2)  cp rt-create-ticket under $HOME/bin/ or uder /usr/bin
 # cp rt-create-ticket $HOME/bin/
 
 3) install rtkit adn KERB auth
