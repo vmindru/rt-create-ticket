@@ -15,11 +15,11 @@ import sys,logging,os,fileinput
 
 logger = logging.getLogger('rtkit')
 produrl = 'https://engineering.redhat.com/rt/REST/1.0/'
-testurl = 'https://rt-stage.englab.bne.redhat.com/rt/REST/1.0/'
-url=testurl
+testurl = ''
+url=produrl
 resource = RTResource(url, None, None, KerberosAuthenticator)
 
-
+# DEFAULT QEUE, STATUS , REQUESTOR AND OWNER
 RT_Queue="eng-ops-prod"
 RT_Status="new"
 RT_Requestor="vmindru@redhat.com"
@@ -94,20 +94,20 @@ def build_request_options(opts):
 		sys.exit(22)
 	# Make sure we have a Requestor 
 	if opts["options"]["Requestor"] == "none":
-		print "Define requestor email address"
-		sys.exit(22)
+		print "Requestor email address not defined using default"
+		opts["options"]["Requestor"] = 	RT_Requestor
 	else:
 		True
 	# Make sure we have a Owner
 	if opts["options"]["Owner"] == "none":
-		print "Define owner email address"
-		sys.exit(22)
+		print "Owner email address not defined using default"
+		opts["options"]["Owner"] = RT_Requestor 	
 	else:
 		True
 	
 	# check if -i has been invoked, if no read from stdin if yes check if file exists and store it in 'text'
 	if opts["options"]["File"] == "none":
-		print "Grabing data from STDIN"
+		print "Grabing data from STDIN print __EOF__ on a new line when you are done with description"
 		text=''
 		for line in sys.stdin:
    			text=text+line
