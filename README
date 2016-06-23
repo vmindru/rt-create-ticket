@@ -21,7 +21,7 @@ you can set up requestor,owner,RT API URL and defautl ticket status creation as 
 RT_QUEUE - specify default queue where to create tickets
 RT_API_URL - default URL to communicate to RT
 RT_STATUS - default status when creating a new ticket e.g. open or new
-
+RT_REQUESTOR - specify email of requestor, defaults to $USER+'@redhat.com'
 
 
 INSTALL:
