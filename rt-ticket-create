@@ -30,7 +30,7 @@ else:
 if os.environ.has_key('RT_REQUESTOR'):
     RT_REQUESTOR=os.environ.get('RT_REQUESTOR')
 else:
-    RT_REQUESTOR=os.environ.get('USER')
+    RT_REQUESTOR=os.environ.get('USER')+'@redhat.com'
 
 default_opts={  
                 'RT_REQUESTOR': RT_REQUESTOR,
@@ -61,6 +61,7 @@ def main(default_opts):
         parser.add_option("-r", "--requestor", dest = "requestor" , default= "none" , help="specify requestor email address e.g. vmindru@redhat.com, defaults to ENV variable $USER")
         parser.add_option("-o", "--owner", dest = "owner" , default= "none" , help="specify owner email address e.g. vmindru@redhat.com, defaults to ENV variable $USER ")
         parser.add_option("-s", "--subject", dest = "subject" , default= "none", help="specify subject for the new ticket, note Subject must be at least 20 characters")
+        parser.add_option("-D", "--description", dest = "description" , default = "none" , help="specify ticket description, if not mentioned you will be promted for input")
         parser.add_option("-f", "--file", dest = "file" , default = "none" , help="path to file for message body, if this parameter is not specified will read from STDIN ")
         parser.add_option("-u", "--url", dest = "url" , default = default_opts['RT_API_URL'] , help="RT API URL e.g. http://mydom/REST/1.0/, defaults to http://localhost or to ENV varialbe $RT_API_URL")
         (options, args) = parser.parse_args()
@@ -73,6 +74,7 @@ def main(default_opts):
                     "Subject": options.subject,
                     "File": options.file,
                     "Url": options.url,
+                    "Description": options.description
                 }   
         }
         return my_options
@@ -111,9 +113,14 @@ def build_request_options(opts):
     # Make sure we have a Requestor 
     if opts["options"]["Requestor"] == "none":
     #    print "Requestor email address not defined using default"
+        print opts["options"]["Requestor"] 
         opts["options"]["Requestor"] =  RT_REQUESTOR
     else:
-        True
+        print "Missing Requestor email, please specify -r option or set RT_REQUESTOR env var" 
+        print opts["options"]["Requestor"] 
+        print OptionParser.print_help()
+        
+
     # Make sure we have a Owner
     if opts["options"]["Owner"] == "none":
     #    print "Owner email address not defined using default"
@@ -123,24 +130,31 @@ def build_request_options(opts):
      
     
     # check if -i has been invoked, if no read from stdin if yes check if file exists and store it in 'text'
-    if opts["options"]["File"] == "none":
+    if opts["options"]["File"] == "none" and opts["options"]["Description"] == "none":
         print "Grabing data from STDIN print __EOF__ on a new line when you are done with description"
         text=''
         line = sys.stdin.readline()
         while line:
             line = sys.stdin.readline()
             if "__EOF__" in line:
-                print "exiting EOF"
                 break
             else:
                 text=text+line
-    else:
+    
+    elif opts["options"]["File"] == "none" and opts["options"]["Description"] != "none":
+        text=opts["options"]["Description"]
+
+    elif opts["options"]["File"] == "none" and opts["options"]["Description"] == "none": 
         if os.path.isfile(opts["options"]["File"]): 
             text=''
             for line in fileinput.input(files = opts["options"]["File"]):
                     text=text+line
         else:
             print "we doubt {} is a file".format(opts["options"]["File"])
+    else:
+        print  opts["options"]["Description"] 
+        print "something went wrong"
+    print "Talking to RT, creating ticket, please wait a moment"
     return opts,text
 
 def request_data(options):
