@@ -55,7 +55,7 @@ def submit_ticket_static(content,url):
 
 def main(default_opts):
         #usage="usage: %prog [options] arg1 arg2"
-        parser = OptionParser(version="%prog 0.2")
+        parser = OptionParser(version="%prog 0.2.1")
         parser.add_option("-q", "--queue", dest = "queue" , default= default_opts['RT_QUEUE'] , help="specify queue, defaults to none or ENV variable $RT_QUEUE")
         parser.add_option("-S", "--status", dest = "status" , default= default_opts['RT_STATUS'] , help="specify status new,resolved,open, defaults to new or to ENV variable $RT_STATUS")
         parser.add_option("-r", "--requestor", dest = "requestor" , default= "none" , help="specify requestor email address e.g. vmindru@redhat.com, defaults to ENV variable $USER")
