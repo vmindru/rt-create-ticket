@@ -30,7 +30,7 @@ else:
 if os.environ.has_key('RT_REQUESTOR'):
     RT_REQUESTOR=os.environ.get('RT_REQUESTOR')
 else:
-    RT_REQUESTOR=os.environ.get('USER')
+    RT_REQUESTOR=os.environ.get('USER')+'@redhat.com'
 
 default_opts={  
                 'RT_REQUESTOR': RT_REQUESTOR,
@@ -113,9 +113,14 @@ def build_request_options(opts):
     # Make sure we have a Requestor 
     if opts["options"]["Requestor"] == "none":
     #    print "Requestor email address not defined using default"
+        print opts["options"]["Requestor"] 
         opts["options"]["Requestor"] =  RT_REQUESTOR
     else:
-        True
+        print "Missing Requestor email, please specify -r option or set RT_REQUESTOR env var" 
+        print opts["options"]["Requestor"] 
+        print OptionParser.print_help()
+        
+
     # Make sure we have a Owner
     if opts["options"]["Owner"] == "none":
     #    print "Owner email address not defined using default"
